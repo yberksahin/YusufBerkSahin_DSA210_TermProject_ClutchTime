@@ -1,0 +1,15 @@
+# Ignore raw and processed data files
+data/raw/*
+data/processed/*
+
+# Ignore generated figures
+figures/*
+
+# Keep folder structure
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!figures/.gitkeep
+
+# Python cache
+__pycache__/
+*.pyc

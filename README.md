@@ -1,6 +1,6 @@
 # README.md
 
-### NBA Last 3 Minutes Strategy Optimization
+### NBA Last 3 Minutes Strategy Optimizationssss
 
 **DSA 210 – Fall 2025–2026**
 
