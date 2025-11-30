@@ -3,7 +3,7 @@
 ## Project Overview
 A data-driven decision support system that recommends optimal strategies for the critical last 3 minutes of NBA games based on current game state.
 
-## Motivation  
+## Motivation
 "Clutch time" - basketball's most thrilling moments. 24 seconds left, down by 2, ball in your hands... Should you attempt a three? Drive for a guaranteed two and foul? Or play fast for a two-for-one opportunity?
 
 NBA history's most unforgettable moments happened in these critical minutes. Ray Allen's 2013 Finals three-pointer, Michael Jordan's "The Shot", Damian Lillard's playoff buzzer-beaters... But were these decisions truly optimal, or just lucky?
@@ -83,6 +83,100 @@ Statistics show that 35% of NBA games change hands in the final 3 minutes. The d
 - Advantage: Can create turnover, disrupts opponent
 - Risk: Can give up easy basket, high foul risk
 
+## Detailed Analysis Plan
+
+### Exploratory Data Analysis (EDA)
+
+**1. Temporal Analysis**
+- Distribution of critical moments across game time (180-0 seconds)
+- Score differential patterns: How often do leads change in each 30-second interval?
+- Momentum shifts: Identify "swing moments" where game control changes
+
+**2. Strategy Effectiveness Heatmaps**
+- Create 2D heatmaps: X-axis (time remaining), Y-axis (score differential)
+- Color-coded by most successful strategy in each situation
+- Separate heatmaps for offensive and defensive strategies
+
+**3. Team-Specific Patterns**
+- Which teams excel in clutch situations? (Win % when trailing in last 3 min)
+- Home vs. Away performance in critical moments
+- Correlation between regular season clutch performance and playoff success
+
+**4. Shot Selection Analysis**
+- Distribution of shot types (3PT vs 2PT) by score differential
+- Success rates for each shot type in different time/score scenarios
+- "Heat check" analysis: Does making previous shots affect strategy choice?
+
+### Hypothesis Testing
+
+**Hypothesis 1: The Three-Point Revolution in Clutch Time**
+- **H0:** When trailing by 3+ points with <30 seconds, 3PT attempts have higher expected value than 2PT+foul strategy
+- **H1:** 2PT+foul strategy yields better outcomes
+- **Test:** Two-sample t-test comparing win probabilities
+- **Data:** Filter games where teams trailed by 3-5 points with 30 seconds left
+
+**Hypothesis 2: Intentional Foul Effectiveness Threshold**
+- **H0:** Intentional fouling is effective when opponent FT% < 70% and time < 20 seconds
+- **H1:** The threshold is different (possibly FT% < 65% or time < 15 seconds)
+- **Test:** Logistic regression with interaction terms
+- **Data:** All defensive possessions in last 20 seconds when trailing
+
+**Hypothesis 3: Two-for-One Strategy Value**
+- **H0:** Taking a quick shot with 35-40 seconds remaining (to get two possessions) increases win probability
+- **H1:** Playing for one quality shot is more effective
+- **Test:** Chi-square test of independence
+- **Data:** Possessions starting between 35-40 seconds, comparing quick vs. deliberate plays
+
+**Hypothesis 4: Bonus Situation Impact**
+- **H0:** Being in the bonus (opponent has 5+ team fouls) significantly affects optimal strategy
+- **H1:** Bonus situation has minimal impact on strategy effectiveness
+- **Test:** ANOVA comparing strategy success rates in bonus vs. non-bonus
+- **Data:** All possessions categorized by foul situation
+
+**Hypothesis 5: Score Differential Breakpoints**
+- **H0:** There are critical score thresholds (e.g., down 3, down 6) that fundamentally change optimal strategy
+- **H1:** Strategy effectiveness changes linearly with score differential
+- **Test:** Piecewise regression to identify breakpoints
+- **Data:** All possessions grouped by score differential
+
+**Hypothesis 6: Clutch Player Effect**
+- **H0:** Having a "clutch" player (top 20 in clutch FG%) on court changes optimal strategy
+- **H1:** Team strategy should remain consistent regardless of personnel
+- **Test:** Paired t-test comparing same situations with/without clutch players
+- **Data:** Possessions tagged with on-court player clutch ratings
+
+### Statistical Methods
+
+**1. Survival Analysis**
+- Treat each possession as a "survival" event
+- Model: Time until lead change as survival time
+- Identify which strategies best "protect" leads
+
+**2. Markov Chain Modeling**
+- States: Combinations of (time_interval, score_differential, possession)
+- Transition probabilities based on strategy chosen
+- Calculate steady-state probabilities for winning
+
+**3. Bayesian Inference**
+- Prior: Historical strategy success rates
+- Update with new season data
+- Posterior: Refined strategy recommendations
+
+**4. Clustering Analysis**
+- K-means clustering on game situations
+- Identify naturally occurring "game state clusters"
+- Determine if certain clusters favor specific strategies
+
+### Feature Importance Analysis
+
+**Key Features to Test:**
+- Time remaining (continuous vs. categorical: last 30s, 30-60s, 60-180s)
+- Score differential (every point vs. ranges: 1-3, 4-6, 7+)
+- Foul situation (bonus/non-bonus)
+- Home/away status
+- Back-to-back game fatigue
+- Playoff vs. regular season
+
 ## Methodology
 
 1. **Data Collection**: Play-by-play data from NBA API (2020-2024)
@@ -98,3 +192,5 @@ Statistics show that 35% of NBA games change hands in the final 3 minutes. The d
 - Success probability for each strategy (%)
 - Expected point differential
 - Interactive dashboard for real-time strategy recommendations
+- Statistical significance of each strategy recommendation
+- Confidence intervals for success rates
