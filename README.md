@@ -1,135 +1,158 @@
-# README.md
+# NBA Last 3 Minutes Strategy Optimization
 
-### NBA Last 3 Minutes Strategy Optimizationssss
-
-**DSA 210 – Fall 2025–2026**
+## DSA 210 – Fall 2025–2026
 
 ---
 
-## 1. Project Overview
+## **Project Overview**
 
-This project investigates **decision-making in the final 3 minutes of NBA games**, a period where small choices often determine the outcome. Using **real play-by-play data from the 2020–2024 seasons**, the goal is to understand how offensive and defensive strategies perform under different game states (score margin, foul situation, time pressure, player involvement).
+This project analyzes the final three minutes ("clutch time") of NBA games using play-by-play data from recent seasons. The objective is to understand which offensive and defensive actions are most effective depending on time remaining, score differential, and game context.
 
-The project delivers:
+Using a custom data pipeline built on the NBA liveData endpoint (V3), the project:
 
-* Automated data collection with `nba_api`
-* Feature engineering to reconstruct game states
-* Exploratory Data Analysis (EDA) of clutch-time behavior
-* Six hypothesis tests powered entirely by real NBA data
-
-The November 28 milestone includes data acquisition, EDA, and hypothesis testing. Machine learning components will follow in the January phase.
+* Collects detailed event logs for the last 180 seconds of regulation and all overtime periods.
+* Performs exploratory data analysis (EDA) to understand patterns in shot selection, fouls, and game flow.
+* Conducts statistical hypothesis tests to evaluate late‑game strategic assumptions.
 
 ---
 
-## 2. Data Sources
+## **Data Pipeline (V3 LiveData)**
 
-All datasets are obtained programmatically using the official **nba_api**.
+The V3 pipeline uses a more robust approach than the standard nba_api play-by-play endpoint. Key features:
 
-### Primary Endpoints
+* Retrieves all games for selected seasons.
+* Downloads play-by-play data using the official **liveData** API:
+  `https://cdn.nba.com/static/json/liveData/playbyplay/playbyplay_{GAME_ID}.json`
+* Extracts events only from:
 
-* `playbyplayv2`: Full, event-level logs for every game
-* `leaguegamefinder`: Retrieve every game ID between 2020–2024
-* `boxscoretraditionalv2`: Player boxscores used to identify top scorers
+  * **Last 3 minutes of 4th quarter**
+  * **All overtime periods**
+* Engineers the following features:
 
-### Derived Real-Data Features
+  * `time_remaining` (seconds)
+  * `score_diff` (homeScore – awayScore)
+  * `event_type`, `shot_category`, `foul_indicator`
+  * game metadata (date, teams)
 
-These fields are created directly from raw play-by-play sequences:
-
-* **Game free-throw accuracy** (computed from real FT attempts)
-* **Possession duration** (based on timestamp differences)
-* **Team foul counts** → used to approximate bonus status
-* **Final score differential** (from last scoring event)
-* **Top scorer per team** (via boxscore data)
-
-No synthetic variables or simulations are used.
+Generated datasets are stored under `data/` but are ignored by Git for reproducibility and size considerations.
 
 ---
 
-## 3. Feature Engineering
+## **Exploratory Data Analysis (EDA)**
 
-| Feature                 | Description                                    |
-| ----------------------- | ---------------------------------------------- |
-| `time_remaining`        | Seconds left in the period                     |
-| `score_diff`            | Real-time score margin (home positive)         |
-| `shot_type`             | 3PT / 2PT / FT classification                  |
-| `team_foul_count`       | Cumulative fouls at each moment                |
-| `in_bonus`              | Bonus approximation from foul counts           |
-| `shot_clock_used`       | Time elapsed since previous event by same team |
-| `final_score_diff`      | Actual final margin of the game                |
-| `top_scorer_id`         | Highest-scoring player on each team            |
-| `is_clutch_player_shot` | Whether the shooter is the top scorer          |
+The EDA module examines how teams behave in clutch time. The following visuals are produced and stored in `figures/`:
 
-These variables allow the project to analyze high-pressure decision outcomes using genuine historical behavior.
+### **1. Temporal Analysis**
 
----
+* Event frequency across 30‑second bins
+* Score differential as a function of time
 
-## 4. Exploratory Data Analysis (EDA)
+### **2. Shot Selection**
 
-The EDA explores clutch-time patterns across four NBA seasons:
+* Distribution of 2PT, 3PT, and FT attempts
+* Shot type vs. score differential
 
-* Event frequency across time intervals (0–30s, 31–60s, etc.)
-* Score margin evolution and tie situations
-* Shot selection behavior in different score states
-* Heatmaps showing distribution of game situations
-* Team-specific clutch event counts
-* Event-type distributions (shots, fouls, turnovers, timeouts)
+### **3. Game State Heatmap**
 
-All figures are saved in `/figures`, and an overall summary is generated in `eda_report.txt`.
+* Frequency of (score bucket × time bucket) combinations
+
+### **4. Team-Level Activity**
+
+* Teams appearing most frequently in clutch scenarios
+
+### **5. Event Type Trends**
+
+* Rebounds, turnovers, fouls, substitutions, timeouts, etc.
+
+A text summary (`eda_report.txt`) is also generated.
 
 ---
 
-## 5. Hypothesis Testing (Real Data)
+## **Hypothesis Testing (Implemented Tests)**
 
-Six hypotheses are tested using only real NBA data.
+For the November deliverable, three statistically valid hypothesis tests were implemented.
 
-### **H1 — Three-Point vs Two-Point Strategy (Trailing by 3+)**
+### **Hypothesis 1 — 3PT vs 2PT Efficiency When Trailing by ≥3**
 
-Compares success rates of 3PT vs 2PT attempts in the last 30 seconds using a two-sample t-test.
+**H0:** No difference in success rate between 3PT and 2PT attempts in final 30 seconds when trailing by 3+.
 
-### **H2 — Intentional Foul Effectiveness**
+**Method:** Two-sample t-test.
 
-Uses real game FT% and final score outcomes to evaluate whether fouling is beneficial at specific FT accuracy thresholds.
-
-### **H3 — Two-for-One Strategy Value**
-
-Classifies quick (<7s) vs deliberate shots using real possession timing and compares win outcomes.
-
-### **H4 — Impact of Bonus Situation**
-
-Examines whether shot success changes when teams are near or in the bonus (using real foul counts).
-
-### **H5 — Score Differential Breakpoints**
-
-Analyzes whether shot success varies nonlinearly across score margins.
-
-### **H6 — Clutch Player Involvement**
-
-Tests whether shots taken by a team’s top scorer behave differently under clutch pressure.
+**Result:** Insufficient sample size → test skipped.
 
 ---
 
-## 6. Repository Structure
+### **Hypothesis 2 — Foul Frequency in Final 30 Seconds**
+
+**H0:** Foul frequency in the last 30 seconds equals foul frequency during 31–180 seconds.
+
+**Method:** Two-proportion z-test.
+
+**Result:** No significant difference at α = 0.05.
+
+---
+
+### **Hypothesis 3 — Score Differential vs. Foul Likelihood**
+
+**H0:** Foul likelihood is independent of score differential bucket.
+
+**Method:** Chi-square independence test.
+
+**Result:** Crosstab degenerate → inconclusive.
+
+---
+
+## **Results Summary**
+
+* Shot behavior and event frequency vary strongly across time bins.
+* No conclusive evidence of foul escalation in the final 30 seconds.
+* Score differential relationships require more data for robust testing.
+* Some late‑game strategies appear underused or highly situational.
+
+---
+
+## **Future Work**
+
+The initial project design included six hypothesis tests. Three are implemented; the remaining three are scheduled for the next phase.
+
+### **1. Bonus Situation Impact**
+
+Evaluate how being in the bonus affects shot selection, foul behavior, and possession strategy.
+
+### **2. Two-for-One Strategy Value**
+
+Quantify expected value differences between quick shots and deliberate late-clock possessions.
+
+### **3. Clutch Player Influence**
+
+Examine whether elite clutch performers shift optimal late-game decision patterns.
+
+These analyses will be incorporated into an ML‑based late‑game decision engine.
+
+---
+
+## **Repository Structure**
 
 ```
-/data
-    /raw
-    /processed
-/figures
-/src
-    data_collection.py
-    exploratory_data_analysis.py
-    hypothesis_testing.py
-README.md
-requirements.txt
+project/
+│
+├── data/               # raw + processed (ignored by Git)
+├── figures/            # saved plots (ignored by Git)
+├── src/
+│   ├── data_collection.py
+│   ├── exploratory_data_analysis.py
+│   └── hypothesis_testing.py
+│
+├── README.md
+├── requirements.txt
+└── .gitignore
 ```
 
 ---
 
-## 7. Reproducibility
+## **Reproduction Instructions**
 
-To run the project:
-
-```bash
+```
 pip install -r requirements.txt
 python src/data_collection.py
 python src/exploratory_data_analysis.py
@@ -138,20 +161,7 @@ python src/hypothesis_testing.py
 
 ---
 
-## 8. Limitations
+## **Author**
 
-* Bonus status is approximated using available fouls (full-period data not provided).
-* Exact shot-clock timestamps are not included in play-by-play logs.
-* Lineup tracking is limited; the clutch player is defined as the team's top scorer.
-
-Despite these constraints, all analyses rely strictly on **real NBA events** without simulated input.
-
----
-
-## 9. Project Status (28 November)
-
-* ✔ Data collected (2020–2024)
-* ✔ Real feature engineering completed
-* ✔ EDA completed
-* ✔ Six hypothesis tests completed
-* ✔ Repository fully aligned with DSA210 requirements
+**Yusuf Berk Şahin**
+Sabancı University – DSA210 Term Project
