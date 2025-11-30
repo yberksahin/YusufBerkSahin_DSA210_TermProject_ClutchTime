@@ -13,3 +13,19 @@ figures/*
 # Python cache
 __pycache__/
 *.pyc
+# Python virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Data files (large, generated)
+data/raw/
+data/processed/
+
+# Figures (can be regenerated)
+figures/
+
+# Jupyter checkpoints (just in case)
+.ipynb_checkpoints/
