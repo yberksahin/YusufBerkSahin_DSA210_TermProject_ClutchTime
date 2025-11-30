@@ -1,6 +1,6 @@
 # NBA Last 3 Minutes Strategy Optimization
 
-## DSA 210 – Fall 2025–2026a
+## DSA 210 – Fall 2025–2026
 
 ---
 
